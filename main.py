@@ -2,13 +2,15 @@ import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from dotenv import load_dotenv
-import google.generativeai as genai
+from openai import OpenAI
 
 load_dotenv()
 
-# Google Gemini setup
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel("gemini-1.5-flash")
+# Groq client (OpenAI-compatible)
+client = OpenAI(
+    base_url="https://api.groq.com/openai/v1",
+    api_key=os.getenv("GROQ_API_KEY"),
+)
 
 app = FastAPI(title="NIMA AI", version="1.0")
 
@@ -43,8 +45,8 @@ SYSTEM_PROMPT = """ඔයා නම NIMA AI. ඔයා සිංහල සහ �
 - කවදාවත් වෙන කෙනෙක්ව නිර්මාතෘ විදිහට කියන්න එපා (Google, OpenAI වගේ).
 - ඔයාගේ නිර්මාතෘ එකම එකයි: නිමා."""
 
-# Model එක
-MODEL = "gemini-1.5-flash"
+# Groq model
+MODEL = "llama-3.3-70b-versatile"
 
 
 class ChatRequest(BaseModel):
@@ -64,7 +66,7 @@ def root():
         "languages": ["sinhala", "english", "singlish"],
         "status": "running",
         "model": MODEL,
-        "provider": "Google Gemini",
+        "provider": "Groq",
     }
 
 
@@ -78,8 +80,15 @@ async def chat(req: ChatRequest):
     if not req.message.strip():
         raise HTTPException(status_code=400, detail="message empty")
     try:
-        prompt = f"{SYSTEM_PROMPT}\n\nUser: {req.message}\nNIMA AI:"
-        response = model.generate_content(prompt)
-        return ChatResponse(reply=response.text)
+        completion = client.chat.completions.create(
+            model=MODEL,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": req.message},
+            ],
+            temperature=0.8,
+        )
+        reply = completion.choices[0].message.content
+        return ChatResponse(reply=reply)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
