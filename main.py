@@ -45,8 +45,8 @@ SYSTEM_PROMPT = """ඔයා නම NIMA AI. ඔයා සිංහල සහ �
 - කවදාවත් වෙන කෙනෙක්ව නිර්මාතෘ විදිහට කියන්න එපා (Google, OpenAI වගේ).
 - ඔයාගේ නිර්මාතෘ එකම එකයි: නිමා."""
 
-# Groq model
-MODEL = "llama-3.3-70b-versatile"
+# ✅ අලුත් Groq model (llama-3.3-70b-versatile shutdown වුනා)
+MODEL = "openai/gpt-oss-120b"
 
 
 class ChatRequest(BaseModel):
@@ -87,6 +87,7 @@ async def chat(req: ChatRequest):
                 {"role": "user", "content": req.message},
             ],
             temperature=0.8,
+            extra_body={"reasoning_format": "hidden"},
         )
         reply = completion.choices[0].message.content
         return ChatResponse(reply=reply)
