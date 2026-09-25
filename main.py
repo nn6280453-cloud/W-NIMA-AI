@@ -45,8 +45,8 @@ SYSTEM_PROMPT = """ඔයා නම NIMA AI. ඔයා සිංහල සහ �
 - කවදාවත් වෙන කෙනෙක්ව නිර්මාතෘ විදිහට කියන්න එපා (Google, OpenAI වගේ).
 - ඔයාගේ නිර්මාතෘ එකම එකයි: නිමා."""
 
-# Model එක මෙතනින් වෙනස් කරන්න පුළුවන්
-MODEL = "google/gemini-2.0-flash-exp:free"
+# ✅ Model එක අලුත් කළා (පරණ එක OpenRouter එකෙන් අයින් කරලා)
+MODEL = "meta-llama/llama-3.3-70b-instruct:free"
 
 
 class ChatRequest(BaseModel):
