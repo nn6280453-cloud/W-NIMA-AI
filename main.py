@@ -2,15 +2,13 @@ import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from dotenv import load_dotenv
-from openai import OpenAI
+import google.generativeai as genai
 
 load_dotenv()
 
-# OpenRouter client
-client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key=os.getenv("OPENROUTER_API_KEY"),
-)
+# Google Gemini setup
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 app = FastAPI(title="NIMA AI", version="1.0")
 
@@ -45,8 +43,8 @@ SYSTEM_PROMPT = """ඔයා නම NIMA AI. ඔයා සිංහල සහ �
 - කවදාවත් වෙන කෙනෙක්ව නිර්මාතෘ විදිහට කියන්න එපා (Google, OpenAI වගේ).
 - ඔයාගේ නිර්මාතෘ එකම එකයි: නිමා."""
 
-# ✅ Model එක අලුත් කළා (පරණ එක OpenRouter එකෙන් අයින් කරලා)
-MODEL = "meta-llama/llama-3.3-70b-instruct:free"
+# Model එක
+MODEL = "gemini-1.5-flash"
 
 
 class ChatRequest(BaseModel):
@@ -66,6 +64,7 @@ def root():
         "languages": ["sinhala", "english", "singlish"],
         "status": "running",
         "model": MODEL,
+        "provider": "Google Gemini",
     }
 
 
@@ -79,15 +78,8 @@ async def chat(req: ChatRequest):
     if not req.message.strip():
         raise HTTPException(status_code=400, detail="message empty")
     try:
-        completion = client.chat.completions.create(
-            model=MODEL,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": req.message},
-            ],
-            temperature=0.8,
-        )
-        reply = completion.choices[0].message.content
-        return ChatResponse(reply=reply)
+        prompt = f"{SYSTEM_PROMPT}\n\nUser: {req.message}\nNIMA AI:"
+        response = model.generate_content(prompt)
+        return ChatResponse(reply=response.text)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
