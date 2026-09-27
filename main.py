@@ -69,8 +69,8 @@ SYSTEM_PROMPT = """ඔයා නම NIMA AI. ඔයා ඇත්ත මනුස
 - දිග පැහැදිලි කිරීම් ඕන නම් ටිකක් දිග වෙන්න පුළුවන්.
 - සරල ප්‍රශ්නවලට සරල උත්තර."""
 
-# ✅ Qwen — Sinhala ට හොඳම Groq model එක
-MODEL = "qwen/qwen3-32b"
+# ✅ Groq එකේ දැනට තියෙන නිවැරදි model එක
+MODEL = "openai/gpt-oss-120b"
 
 
 class ChatRequest(BaseModel):
@@ -112,11 +112,11 @@ async def chat(req: ChatRequest):
                 {"role": "user", "content": req.message},
             ],
             temperature=0.9,
-            extra_body={"reasoning_effort": "none"},
+            extra_body={"reasoning_format": "hidden"},
         )
         reply = completion.choices[0].message.content
 
-        # Qwen එකේ reasoning tags තියෙනවා නම් අයින් කරන්න
+        # Reasoning tags තියෙනවා නම් අයින් කරන්න
         if "</think>" in reply:
             reply = reply.split("</think>")[-1].strip()
         if "<think>" in reply:
